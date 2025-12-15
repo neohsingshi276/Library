@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.secondhand.system.mapper.ProductFavoriteMapper">
+
+    <resultMap id="ProductFavoriteResult" type="com.secondhand.system.domain.ProductFavorite">
+        <id property="favoriteId" column="favorite_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <sql id="selectProductFavoriteVo">
+        select favorite_id, user_id, product_id, create_time
+        from product_favorite
+    </sql>
+
+    <select id="selectProductFavorite" parameterType="com.secondhand.system.domain.ProductFavorite" resultMap="ProductFavoriteResult">
+        <include refid="selectProductFavoriteVo"/>
+        <where>
+            <if test="favoriteId != null">and favorite_id = #{favoriteId}</if>
+            <if test="userId != null">and user_id = #{userId}</if>
+            <if test="productId != null">and product_id = #{productId}</if>
+        </where>
+        limit 1
+    </select>
+
+    <select id="selectProductFavoriteList" parameterType="com.secondhand.system.domain.ProductFavorite" resultMap="ProductFavoriteResult">
+        <include refid="selectProductFavoriteVo"/>
+        <where>
+            <if test="userId != null">and user_id = #{userId}</if>
+            <if test="productId != null">and product_id = #{productId}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <insert id="insertProductFavorite" parameterType="com.secondhand.system.domain.ProductFavorite" useGeneratedKeys="true" keyProperty="favoriteId">
+        insert into product_favorite
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="productId != null">product_id,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="productId != null">#{productId},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <delete id="deleteProductFavorite" parameterType="com.secondhand.system.domain.ProductFavorite">
+        delete from product_favorite
+        <where>
+            <if test="userId != null">and user_id = #{userId}</if>
+            <if test="productId != null">and product_id = #{productId}</if>
+        </where>
+    </delete>
+
+    <delete id="deleteProductFavoriteById" parameterType="Long">
+        delete from product_favorite where favorite_id = #{favoriteId}
+    </delete>
+
+    <delete id="deleteProductFavoriteByIds" parameterType="String">
+        delete from product_favorite where favorite_id in
+        <foreach item="favoriteId" collection="array" open="(" separator="," close=")">
+            #{favoriteId}
+        </foreach>
+    </delete>
+
+    <select id="countProductFavoriteByProductId" parameterType="Long" resultType="int">
+        select count(1) from product_favorite where product_id = #{productId}
+    </select>
+
+    <select id="checkFavoriteExists" resultType="int">
+        select count(1) from product_favorite
+        where user_id = #{userId} and product_id = #{productId}
+    </select>
+
+</mapper>
+

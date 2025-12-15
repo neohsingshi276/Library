@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.secondhand.system.mapper.ProductOrderReturnMapper">
+
+    <resultMap id="ProductOrderReturnResult" type="com.secondhand.system.domain.ProductOrderReturn">
+        <id property="returnId" column="return_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="returnNo" column="return_no"/>
+        <result property="returnType" column="return_type"/>
+        <result property="returnReason" column="return_reason"/>
+        <result property="returnDescription" column="return_description"/>
+        <result property="returnImages" column="return_images"/>
+        <result property="returnStatus" column="return_status"/>
+        <result property="receiveStatus" column="receive_status"/>
+        <result property="returnAmount" column="return_amount"/>
+        <result property="returnShippingFee" column="return_shipping_fee"/>
+        <result property="returnExpressCompany" column="return_express_company"/>
+        <result property="returnExpressNo" column="return_express_no"/>
+        <result property="returnShippingTime" column="return_shipping_time"/>
+        <result property="sellerReceiveTime" column="seller_receive_time"/>
+        <result property="sellerReceiveRemark" column="seller_receive_remark"/>
+        <result property="refundTime" column="refund_time"/>
+        <result property="refundAmount" column="refund_amount"/>
+        <result property="refundRemark" column="refund_remark"/>
+        <result property="approveTime" column="approve_time"/>
+        <result property="approveDeadline" column="approve_deadline"/>
+        <result property="rejectReason" column="reject_reason"/>
+        <result property="rejectTime" column="reject_time"/>
+        <result property="shippingDeadline" column="shipping_deadline"/>
+        <result property="completeTime" column="complete_time"/>
+        <result property="cancelTime" column="cancel_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <!-- 包含订单商品信息的ResultMap -->
+    <resultMap id="ProductOrderReturnWithOrderResult" type="java.util.HashMap">
+        <id property="returnId" column="return_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="returnNo" column="return_no"/>
+        <result property="returnType" column="return_type"/>
+        <result property="returnReason" column="return_reason"/>
+        <result property="returnDescription" column="return_description"/>
+        <result property="returnImages" column="return_images"/>
+        <result property="returnStatus" column="return_status"/>
+        <result property="returnAmount" column="return_amount"/>
+        <result property="returnShippingFee" column="return_shipping_fee"/>
+        <result property="returnExpressCompany" column="return_express_company"/>
+        <result property="returnExpressNo" column="return_express_no"/>
+        <result property="returnShippingTime" column="return_shipping_time"/>
+        <result property="sellerReceiveTime" column="seller_receive_time"/>
+        <result property="sellerReceiveRemark" column="seller_receive_remark"/>
+        <result property="refundTime" column="refund_time"/>
+        <result property="refundAmount" column="refund_amount"/>
+        <result property="refundRemark" column="refund_remark"/>
+        <result property="approveTime" column="approve_time"/>
+        <result property="approveDeadline" column="approve_deadline"/>
+        <result property="rejectReason" column="reject_reason"/>
+        <result property="rejectTime" column="reject_time"/>
+        <result property="shippingDeadline" column="shipping_deadline"/>
+        <result property="completeTime" column="complete_time"/>
+        <result property="cancelTime" column="cancel_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="productTitle" column="product_title"/>
+        <result property="productImage" column="product_image"/>
+        <result property="orderAmount" column="order_amount"/>
+    </resultMap>
+
+    <sql id="selectProductOrderReturnVo">
+        select return_id, order_id, order_no, return_no, return_type, return_reason, return_description,
+               return_images, return_status, receive_status, return_amount, return_shipping_fee, return_express_company,
+               return_express_no, return_shipping_time, seller_receive_time, seller_receive_remark,
+               refund_time, refund_amount, refund_remark,
+               approve_time, approve_deadline, reject_reason,
+               reject_time, shipping_deadline, complete_time, cancel_time, create_time, update_time
+        from product_order_return
+    </sql>
+
+    <select id="selectProductOrderReturnById" parameterType="Long" resultMap="ProductOrderReturnResult">
+        <include refid="selectProductOrderReturnVo"/>
+        where return_id = #{returnId}
+    </select>
+
+    <select id="selectProductOrderReturnByReturnNo" parameterType="String" resultMap="ProductOrderReturnResult">
+        <include refid="selectProductOrderReturnVo"/>
+        where return_no = #{returnNo}
+    </select>
+
+    <select id="selectProductOrderReturnListByOrderId" parameterType="Long" resultMap="ProductOrderReturnResult">
+        <include refid="selectProductOrderReturnVo"/>
+        where order_id = #{orderId}
+        order by create_time desc
+    </select>
+
+    <select id="selectProductOrderReturnListByOrderNo" parameterType="String" resultMap="ProductOrderReturnResult">
+        <include refid="selectProductOrderReturnVo"/>
+        where order_no = #{orderNo}
+        order by create_time desc
+    </select>
+
+    <select id="selectProductOrderReturnList" parameterType="com.secondhand.system.domain.ProductOrderReturn" resultMap="ProductOrderReturnResult">
+        <include refid="selectProductOrderReturnVo"/>
+        <where>
+            <if test="orderId != null">and order_id = #{orderId}</if>
+            <if test="orderNo != null and orderNo != ''">and order_no = #{orderNo}</if>
+            <if test="returnNo != null and returnNo != ''">and return_no = #{returnNo}</if>
+            <if test="returnType != null and returnType != ''">and return_type = #{returnType}</if>
+            <if test="returnStatus != null and returnStatus != ''">and return_status = #{returnStatus}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectProductOrderReturnListByUserId" parameterType="Long" resultType="java.util.HashMap">
+        select por.return_id as returnId, por.order_id as orderId, por.order_no as orderNo, por.return_no as returnNo, 
+               por.return_type as returnType, por.return_reason as returnReason, por.return_description as returnDescription,
+               por.return_images as returnImages, por.return_status as returnStatus, por.return_amount as returnAmount, 
+               por.return_shipping_fee as returnShippingFee, por.return_express_company as returnExpressCompany,
+               por.return_express_no as returnExpressNo, por.return_shipping_time as returnShippingTime, 
+               por.approve_time as approveTime, por.approve_deadline as approveDeadline, por.reject_reason as rejectReason,
+               por.reject_time as rejectTime, por.shipping_deadline as shippingDeadline, por.complete_time as completeTime, 
+               por.cancel_time as cancelTime, por.create_time as createTime, por.update_time as updateTime,
+               po.product_title as productTitle, po.product_image as productImage, po.order_amount as orderAmount,
+               po.user_id as userId, po.seller_id as sellerId
+        from product_order_return por
+        inner join product_order po on por.order_id = po.order_id
+        where po.user_id = #{userId}
+        order by por.create_time desc
+    </select>
+
+    <!-- 根据卖家ID查询退货列表（卖家视角：通过订单->商品->卖家关联查询） -->
+    <select id="selectProductOrderReturnListBySellerId" parameterType="Long" resultType="java.util.HashMap">
+        select por.return_id as returnId, por.order_id as orderId, por.order_no as orderNo, por.return_no as returnNo, 
+               por.return_type as returnType, por.return_reason as returnReason, por.return_description as returnDescription,
+               por.return_images as returnImages, por.return_status as returnStatus, por.return_amount as returnAmount, 
+               por.return_shipping_fee as returnShippingFee, por.return_express_company as returnExpressCompany,
+               por.return_express_no as returnExpressNo, por.return_shipping_time as returnShippingTime, 
+               por.approve_time as approveTime, por.approve_deadline as approveDeadline, por.reject_reason as rejectReason,
+               por.reject_time as rejectTime, por.shipping_deadline as shippingDeadline, por.complete_time as completeTime, 
+               por.cancel_time as cancelTime, por.create_time as createTime, por.update_time as updateTime,
+               IFNULL(po.product_title, '') as productTitle, IFNULL(po.product_image, '') as productImage, po.order_amount as orderAmount,
+               po.user_id as userId, po.product_id as productId, IFNULL(po.order_status, '') as orderStatus, IFNULL(po.shipping_status, '0') as shippingStatus,
+               p.seller_id as sellerId
+        from product_order_return por
+        inner join product_order po on por.order_id = po.order_id
+        inner join product p on po.product_id = p.product_id
+        where p.seller_id = #{sellerId}
+        order by por.create_time desc
+    </select>
+
+    <insert id="insertProductOrderReturn" parameterType="com.secondhand.system.domain.ProductOrderReturn" useGeneratedKeys="true" keyProperty="returnId">
+        insert into product_order_return
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderId != null">order_id,</if>
+            <if test="orderNo != null and orderNo != ''">order_no,</if>
+            <if test="returnNo != null and returnNo != ''">return_no,</if>
+            <if test="returnType != null and returnType != ''">return_type,</if>
+            <if test="returnReason != null and returnReason != ''">return_reason,</if>
+            <if test="returnDescription != null">return_description,</if>
+            <if test="returnImages != null">return_images,</if>
+            <if test="returnStatus != null and returnStatus != ''">return_status,</if>
+            <if test="receiveStatus != null and receiveStatus != ''">receive_status,</if>
+            <if test="returnAmount != null">return_amount,</if>
+            <if test="returnShippingFee != null">return_shipping_fee,</if>
+            <if test="returnExpressCompany != null">return_express_company,</if>
+            <if test="returnExpressNo != null">return_express_no,</if>
+            <if test="returnShippingTime != null">return_shipping_time,</if>
+            <if test="sellerReceiveTime != null">seller_receive_time,</if>
+            <if test="sellerReceiveRemark != null">seller_receive_remark,</if>
+            <if test="refundTime != null">refund_time,</if>
+            <if test="refundAmount != null">refund_amount,</if>
+            <if test="refundRemark != null">refund_remark,</if>
+            <if test="approveTime != null">approve_time,</if>
+            <if test="approveDeadline != null">approve_deadline,</if>
+            <if test="rejectReason != null">reject_reason,</if>
+            <if test="rejectTime != null">reject_time,</if>
+            <if test="shippingDeadline != null">shipping_deadline,</if>
+            <if test="completeTime != null">complete_time,</if>
+            <if test="cancelTime != null">cancel_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderId != null">#{orderId},</if>
+            <if test="orderNo != null and orderNo != ''">#{orderNo},</if>
+            <if test="returnNo != null and returnNo != ''">#{returnNo},</if>
+            <if test="returnType != null and returnType != ''">#{returnType},</if>
+            <if test="returnReason != null and returnReason != ''">#{returnReason},</if>
+            <if test="returnDescription != null">#{returnDescription},</if>
+            <if test="returnImages != null">#{returnImages},</if>
+            <if test="returnStatus != null and returnStatus != ''">#{returnStatus},</if>
+            <if test="receiveStatus != null and receiveStatus != ''">#{receiveStatus},</if>
+            <if test="returnAmount != null">#{returnAmount},</if>
+            <if test="returnShippingFee != null">#{returnShippingFee},</if>
+            <if test="returnExpressCompany != null">#{returnExpressCompany},</if>
+            <if test="returnExpressNo != null">#{returnExpressNo},</if>
+            <if test="returnShippingTime != null">#{returnShippingTime},</if>
+            <if test="sellerReceiveTime != null">#{sellerReceiveTime},</if>
+            <if test="sellerReceiveRemark != null">#{sellerReceiveRemark},</if>
+            <if test="refundTime != null">#{refundTime},</if>
+            <if test="refundAmount != null">#{refundAmount},</if>
+            <if test="refundRemark != null">#{refundRemark},</if>
+            <if test="approveTime != null">#{approveTime},</if>
+            <if test="approveDeadline != null">#{approveDeadline},</if>
+            <if test="rejectReason != null">#{rejectReason},</if>
+            <if test="rejectTime != null">#{rejectTime},</if>
+            <if test="shippingDeadline != null">#{shippingDeadline},</if>
+            <if test="completeTime != null">#{completeTime},</if>
+            <if test="cancelTime != null">#{cancelTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateProductOrderReturn" parameterType="com.secondhand.system.domain.ProductOrderReturn">
+        update product_order_return
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="returnType != null and returnType != ''">return_type = #{returnType},</if>
+            <if test="returnReason != null and returnReason != ''">return_reason = #{returnReason},</if>
+            <if test="returnDescription != null">return_description = #{returnDescription},</if>
+            <if test="returnImages != null">return_images = #{returnImages},</if>
+            <if test="returnStatus != null and returnStatus != ''">return_status = #{returnStatus},</if>
+            <if test="receiveStatus != null">receive_status = #{receiveStatus},</if>
+            <if test="returnAmount != null">return_amount = #{returnAmount},</if>
+            <if test="returnShippingFee != null">return_shipping_fee = #{returnShippingFee},</if>
+            <if test="returnExpressCompany != null">return_express_company = #{returnExpressCompany},</if>
+            <if test="returnExpressNo != null">return_express_no = #{returnExpressNo},</if>
+            <if test="returnShippingTime != null">return_shipping_time = #{returnShippingTime},</if>
+            <if test="sellerReceiveTime != null">seller_receive_time = #{sellerReceiveTime},</if>
+            <if test="sellerReceiveRemark != null">seller_receive_remark = #{sellerReceiveRemark},</if>
+            <if test="refundTime != null">refund_time = #{refundTime},</if>
+            <if test="refundAmount != null">refund_amount = #{refundAmount},</if>
+            <if test="refundRemark != null">refund_remark = #{refundRemark},</if>
+            <if test="approveTime != null">approve_time = #{approveTime},</if>
+            <if test="approveDeadline != null">approve_deadline = #{approveDeadline},</if>
+            <if test="rejectReason != null">reject_reason = #{rejectReason},</if>
+            <if test="rejectTime != null">reject_time = #{rejectTime},</if>
+            <if test="shippingDeadline != null">shipping_deadline = #{shippingDeadline},</if>
+            <if test="completeTime != null">complete_time = #{completeTime},</if>
+            <if test="cancelTime != null">cancel_time = #{cancelTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where return_id = #{returnId}
+    </update>
+
+    <delete id="deleteProductOrderReturnById" parameterType="Long">
+        delete from product_order_return where return_id = #{returnId}
+    </delete>
+
+    <delete id="deleteProductOrderReturnByIds" parameterType="String">
+        delete from product_order_return where return_id in
+        <foreach item="returnId" collection="array" open="(" separator="," close=")">
+            #{returnId}
+        </foreach>
+    </delete>
+
+</mapper>
+
+

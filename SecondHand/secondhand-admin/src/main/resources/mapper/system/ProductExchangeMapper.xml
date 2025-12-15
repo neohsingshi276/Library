@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.secondhand.system.mapper.ProductExchangeMapper">
+
+    <resultMap id="ProductExchangeResult" type="com.secondhand.system.domain.ProductExchange">
+        <id property="exchangeId" column="exchange_id"/>
+        <result property="exchangeNo" column="exchange_no"/>
+        <result property="requesterId" column="requester_id"/>
+        <result property="receiverId" column="receiver_id"/>
+        <result property="requesterProductId" column="requester_product_id"/>
+        <result property="receiverProductId" column="receiver_product_id"/>
+        <result property="exchangeStatus" column="exchange_status"/>
+        <result property="contactRevealed" column="contact_revealed"/>
+        <result property="requesterComplete" column="requester_complete"/>
+        <result property="receiverComplete" column="receiver_complete"/>
+        <result property="rejectReason" column="reject_reason"/>
+        <result property="rejectTime" column="reject_time"/>
+        <result property="acceptTime" column="accept_time"/>
+        <result property="contactRevealTime" column="contact_reveal_time"/>
+        <result property="completeTime" column="complete_time"/>
+        <result property="cancelTime" column="cancel_time"/>
+        <result property="cancelReason" column="cancel_reason"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+        <!-- 关联查询字段 -->
+        <result property="requesterName" column="requester_name"/>
+        <result property="requesterAvatar" column="requester_avatar"/>
+        <result property="requesterPhone" column="requester_phone"/>
+        <result property="requesterEmail" column="requester_email"/>
+        <result property="receiverName" column="receiver_name"/>
+        <result property="receiverAvatar" column="receiver_avatar"/>
+        <result property="receiverPhone" column="receiver_phone"/>
+        <result property="receiverEmail" column="receiver_email"/>
+        <result property="requesterProductTitle" column="requester_product_title"/>
+        <result property="requesterProductImage" column="requester_product_image"/>
+        <result property="requesterProductStatus" column="requester_product_status"/>
+        <result property="receiverProductTitle" column="receiver_product_title"/>
+        <result property="receiverProductImage" column="receiver_product_image"/>
+        <result property="receiverProductStatus" column="receiver_product_status"/>
+    </resultMap>
+
+    <sql id="selectProductExchangeVo">
+        select e.exchange_id, e.exchange_no, e.requester_id, e.receiver_id,
+               e.requester_product_id, e.receiver_product_id, e.exchange_status,
+               e.contact_revealed, e.requester_complete, e.receiver_complete,
+               e.reject_reason, e.reject_time, e.accept_time, e.contact_reveal_time,
+               e.complete_time, e.cancel_time, e.cancel_reason, e.create_time, e.update_time, e.remark,
+               COALESCE(rq.nick_name, rq.user_name, '') as requester_name,
+               rq.avatar as requester_avatar,
+               rq.phonenumber as requester_phone,
+               rq.email as requester_email,
+               COALESCE(rc.nick_name, rc.user_name, '') as receiver_name,
+               rc.avatar as receiver_avatar,
+               rc.phonenumber as receiver_phone,
+               rc.email as receiver_email,
+               rp.title as requester_product_title,
+               SUBSTRING_INDEX(rp.images, ',', 1) as requester_product_image,
+               rp.status as requester_product_status,
+               rcp.title as receiver_product_title,
+               SUBSTRING_INDEX(rcp.images, ',', 1) as receiver_product_image,
+               rcp.status as receiver_product_status
+        from product_exchange e
+        left join client rq on e.requester_id = rq.user_id
+        left join client rc on e.receiver_id = rc.user_id
+        left join product rp on e.requester_product_id = rp.product_id
+        left join product rcp on e.receiver_product_id = rcp.product_id
+    </sql>
+
+    <select id="selectProductExchangeList" parameterType="com.secondhand.system.domain.ProductExchange" resultMap="ProductExchangeResult">
+        <include refid="selectProductExchangeVo"/>
+        <where>
+            <if test="exchangeNo != null and exchangeNo != ''">and e.exchange_no = #{exchangeNo}</if>
+            <if test="requesterId != null">and e.requester_id = #{requesterId}</if>
+            <if test="receiverId != null">and e.receiver_id = #{receiverId}</if>
+            <if test="requesterProductId != null">and e.requester_product_id = #{requesterProductId}</if>
+            <if test="receiverProductId != null">and e.receiver_product_id = #{receiverProductId}</if>
+            <if test="exchangeStatus != null and exchangeStatus != ''">and e.exchange_status = #{exchangeStatus}</if>
+        </where>
+        order by e.create_time desc
+    </select>
+
+    <select id="selectProductExchangeById" parameterType="Long" resultMap="ProductExchangeResult">
+        <include refid="selectProductExchangeVo"/>
+        where e.exchange_id = #{exchangeId}
+    </select>
+
+    <select id="selectProductExchangeByNo" parameterType="String" resultMap="ProductExchangeResult">
+        <include refid="selectProductExchangeVo"/>
+        where e.exchange_no = #{exchangeNo}
+    </select>
+
+    <select id="selectMyExchangeRequests" parameterType="Long" resultMap="ProductExchangeResult">
+        <include refid="selectProductExchangeVo"/>
+        where e.requester_id = #{requesterId}
+        order by e.create_time desc
+    </select>
+
+    <select id="selectMyExchangeReceives" parameterType="Long" resultMap="ProductExchangeResult">
+        <include refid="selectProductExchangeVo"/>
+        where e.receiver_id = #{receiverId}
+        order by e.create_time desc
+    </select>
+
+    <select id="checkDuplicateExchange" resultType="int">
+        select count(1)
+        from product_exchange
+        where requester_id = #{requesterId}
+          and receiver_id = #{receiverId}
+          and requester_product_id = #{requesterProductId}
+          and receiver_product_id = #{receiverProductId}
+          and exchange_status = 'pending'
+    </select>
+
+    <insert id="insertProductExchange" parameterType="com.secondhand.system.domain.ProductExchange" useGeneratedKeys="true" keyProperty="exchangeId">
+        insert into product_exchange
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="exchangeNo != null and exchangeNo != ''">exchange_no,</if>
+            <if test="requesterId != null">requester_id,</if>
+            <if test="receiverId != null">receiver_id,</if>
+            <if test="requesterProductId != null">requester_product_id,</if>
+            <if test="receiverProductId != null">receiver_product_id,</if>
+            <if test="exchangeStatus != null and exchangeStatus != ''">exchange_status,</if>
+            <if test="contactRevealed != null and contactRevealed != ''">contact_revealed,</if>
+            <if test="requesterComplete != null and requesterComplete != ''">requester_complete,</if>
+            <if test="receiverComplete != null and receiverComplete != ''">receiver_complete,</if>
+            <if test="rejectReason != null">reject_reason,</if>
+            <if test="rejectTime != null">reject_time,</if>
+            <if test="acceptTime != null">accept_time,</if>
+            <if test="contactRevealTime != null">contact_reveal_time,</if>
+            <if test="completeTime != null">complete_time,</if>
+            <if test="cancelTime != null">cancel_time,</if>
+            <if test="cancelReason != null">cancel_reason,</if>
+            <if test="remark != null">remark,</if>
+            create_time
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="exchangeNo != null and exchangeNo != ''">#{exchangeNo},</if>
+            <if test="requesterId != null">#{requesterId},</if>
+            <if test="receiverId != null">#{receiverId},</if>
+            <if test="requesterProductId != null">#{requesterProductId},</if>
+            <if test="receiverProductId != null">#{receiverProductId},</if>
+            <if test="exchangeStatus != null and exchangeStatus != ''">#{exchangeStatus},</if>
+            <if test="contactRevealed != null and contactRevealed != ''">#{contactRevealed},</if>
+            <if test="requesterComplete != null and requesterComplete != ''">#{requesterComplete},</if>
+            <if test="receiverComplete != null and receiverComplete != ''">#{receiverComplete},</if>
+            <if test="rejectReason != null">#{rejectReason},</if>
+            <if test="rejectTime != null">#{rejectTime},</if>
+            <if test="acceptTime != null">#{acceptTime},</if>
+            <if test="contactRevealTime != null">#{contactRevealTime},</if>
+            <if test="completeTime != null">#{completeTime},</if>
+            <if test="cancelTime != null">#{cancelTime},</if>
+            <if test="cancelReason != null">#{cancelReason},</if>
+            <if test="remark != null">#{remark},</if>
+            now()
+        </trim>
+    </insert>
+
+    <update id="updateProductExchange" parameterType="com.secondhand.system.domain.ProductExchange">
+        update product_exchange
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="exchangeNo != null and exchangeNo != ''">exchange_no = #{exchangeNo},</if>
+            <if test="requesterId != null">requester_id = #{requesterId},</if>
+            <if test="receiverId != null">receiver_id = #{receiverId},</if>
+            <if test="requesterProductId != null">requester_product_id = #{requesterProductId},</if>
+            <if test="receiverProductId != null">receiver_product_id = #{receiverProductId},</if>
+            <if test="exchangeStatus != null and exchangeStatus != ''">exchange_status = #{exchangeStatus},</if>
+            <if test="contactRevealed != null and contactRevealed != ''">contact_revealed = #{contactRevealed},</if>
+            <if test="requesterComplete != null and requesterComplete != ''">requester_complete = #{requesterComplete},</if>
+            <if test="receiverComplete != null and receiverComplete != ''">receiver_complete = #{receiverComplete},</if>
+            <if test="rejectReason != null">reject_reason = #{rejectReason},</if>
+            <if test="rejectTime != null">reject_time = #{rejectTime},</if>
+            <if test="acceptTime != null">accept_time = #{acceptTime},</if>
+            <if test="contactRevealTime != null">contact_reveal_time = #{contactRevealTime},</if>
+            <if test="completeTime != null">complete_time = #{completeTime},</if>
+            <if test="cancelTime != null">cancel_time = #{cancelTime},</if>
+            <if test="cancelReason != null">cancel_reason = #{cancelReason},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = now()
+        </trim>
+        where exchange_id = #{exchangeId}
+    </update>
+
+    <delete id="deleteProductExchangeById" parameterType="Long">
+        delete from product_exchange where exchange_id = #{exchangeId}
+    </delete>
+
+    <delete id="deleteProductExchangeByIds" parameterType="String">
+        delete from product_exchange where exchange_id in
+        <foreach item="exchangeId" collection="array" open="(" separator="," close=")">
+            #{exchangeId}
+        </foreach>
+    </delete>
+
+    <!-- 统计交换总数 -->
+    <select id="countAllExchanges" resultType="Long">
+        select count(*) from product_exchange
+    </select>
+
+</mapper>
+

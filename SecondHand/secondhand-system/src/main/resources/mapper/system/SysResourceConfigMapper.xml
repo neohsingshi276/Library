@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.secondhand.system.mapper.SysResourceConfigMapper">
+    
+    <resultMap type="SysResourceConfig" id="SysResourceConfigResult">
+        <id     property="resourceId"      column="resource_id"      />
+        <result property="resourceType"   column="resource_type"    />
+        <result property="resourceScene"  column="resource_scene"   />
+        <result property="resourceName"   column="resource_name"    />
+        <result property="resourceUrl"    column="resource_url"     />
+        <result property="sortOrder"      column="sort_order"       />
+        <result property="status"          column="status"           />
+        <result property="createBy"        column="create_by"       />
+        <result property="createTime"      column="create_time"      />
+        <result property="updateBy"       column="update_by"        />
+        <result property="updateTime"      column="update_time"      />
+        <result property="remark"          column="remark"           />
+    </resultMap>
+    
+    <sql id="selectResourceConfigVo">
+        select resource_id, resource_type, resource_scene, resource_name, resource_url, sort_order, status, create_by, create_time, update_by, update_time, remark 
+        from sys_resource_config
+    </sql>
+    
+    <!-- 查询条件 -->
+    <sql id="sqlwhereSearch">
+        <where>
+            <if test="resourceId !=null">
+                and resource_id = #{resourceId}
+            </if>
+            <if test="resourceScene !=null and resourceScene != ''">
+                and resource_scene = #{resourceScene}
+            </if>
+            <if test="resourceType !=null and resourceType != ''">
+                and resource_type = #{resourceType}
+            </if>
+            <if test="status !=null and status != ''">
+                and status = #{status}
+            </if>
+        </where>
+    </sql>
+    
+    <select id="selectResourceConfigById" parameterType="Long" resultMap="SysResourceConfigResult">
+        <include refid="selectResourceConfigVo"/>
+        where resource_id = #{resourceId}
+    </select>
+    
+    <select id="selectResourceConfigList" parameterType="SysResourceConfig" resultMap="SysResourceConfigResult">
+        <include refid="selectResourceConfigVo"/>
+        <where>
+            <if test="resourceType != null and resourceType != ''">
+                AND resource_type = #{resourceType}
+            </if>
+            <if test="resourceScene != null and resourceScene != ''">
+                AND resource_scene = #{resourceScene}
+            </if>
+            <if test="resourceName != null and resourceName != ''">
+                AND resource_name like concat('%', #{resourceName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                and date_format(create_time,'%Y%m%d') &gt;= date_format(#{params.beginTime},'%Y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                and date_format(create_time,'%Y%m%d') &lt;= date_format(#{params.endTime},'%Y%m%d')
+            </if>
+        </where>
+        order by sort_order asc, create_time desc
+    </select>
+
+    <select id="selectResourceConfigBySceneAndType" resultMap="SysResourceConfigResult">
+        <include refid="selectResourceConfigVo"/>
+        <where>
+            resource_scene = #{resourceScene}
+            <if test="resourceType != null and resourceType != ''">
+                and resource_type = #{resourceType}
+            </if>
+            and status = '0'
+        </where>
+        order by sort_order asc, create_time desc
+    </select>
+    
+    <insert id="insertResourceConfig" parameterType="SysResourceConfig">
+        insert into sys_resource_config (
+            <if test="resourceType != null and resourceType != ''">resource_type,</if>
+            <if test="resourceScene != null and resourceScene != ''">resource_scene,</if>
+            <if test="resourceName != null and resourceName != ''">resource_name,</if>
+            <if test="resourceUrl != null and resourceUrl != ''">resource_url,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            create_time
+        )values(
+            <if test="resourceType != null and resourceType != ''">#{resourceType},</if>
+            <if test="resourceScene != null and resourceScene != ''">#{resourceScene},</if>
+            <if test="resourceName != null and resourceName != ''">#{resourceName},</if>
+            <if test="resourceUrl != null and resourceUrl != ''">#{resourceUrl},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            sysdate()
+        )
+    </insert>
+     
+    <update id="updateResourceConfig" parameterType="SysResourceConfig">
+        update sys_resource_config 
+        <set>
+            <if test="resourceType != null and resourceType != ''">resource_type = #{resourceType},</if>
+            <if test="resourceScene != null and resourceScene != ''">resource_scene = #{resourceScene},</if>
+            <if test="resourceName != null and resourceName != ''">resource_name = #{resourceName},</if>
+            <if test="resourceUrl != null and resourceUrl != ''">resource_url = #{resourceUrl},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            update_time = sysdate()
+        </set>
+        where resource_id = #{resourceId}
+    </update>
+    
+    <delete id="deleteResourceConfigById" parameterType="Long">
+        delete from sys_resource_config where resource_id = #{resourceId}
+    </delete>
+    
+    <delete id="deleteResourceConfigByIds" parameterType="Long">
+        delete from sys_resource_config where resource_id in 
+        <foreach item="resourceId" collection="array" open="(" separator="," close=")">
+            #{resourceId}
+        </foreach>
+    </delete>
+    
+</mapper>
+

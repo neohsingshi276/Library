@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.secondhand.system.mapper.ProductCategoryMapper">
+    
+    <resultMap type="ProductCategory" id="ProductCategoryResult">
+        <result property="categoryId"    column="category_id"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="ancestors"    column="ancestors"    />
+        <result property="categoryName"    column="category_name"    />
+        <result property="orderNum"    column="order_num"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectProductCategoryVo">
+        select category_id, parent_id, ancestors, category_name, order_num, create_time, update_time from product_category
+    </sql>
+
+    <select id="selectProductCategoryList" parameterType="ProductCategory" resultMap="ProductCategoryResult">
+        <include refid="selectProductCategoryVo"/>
+        <where>  
+            <if test="parentId != null "> and parent_id = #{parentId}</if>
+            <if test="ancestors != null  and ancestors != ''"> and ancestors = #{ancestors}</if>
+            <if test="categoryName != null  and categoryName != ''"> and category_name like concat('%', #{categoryName}, '%')</if>
+            <if test="orderNum != null "> and order_num = #{orderNum}</if>
+        </where>
+    </select>
+    
+    <select id="selectProductCategoryByCategoryId" parameterType="Long" resultMap="ProductCategoryResult">
+        <include refid="selectProductCategoryVo"/>
+        where category_id = #{categoryId}
+    </select>
+
+    <insert id="insertProductCategory" parameterType="ProductCategory" useGeneratedKeys="true" keyProperty="categoryId">
+        insert into product_category
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentId != null">parent_id,</if>
+            <if test="ancestors != null">ancestors,</if>
+            <if test="categoryName != null and categoryName != ''">category_name,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="parentId != null">#{parentId},</if>
+            <if test="ancestors != null">#{ancestors},</if>
+            <if test="categoryName != null and categoryName != ''">#{categoryName},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateProductCategory" parameterType="ProductCategory">
+        update product_category
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="ancestors != null">ancestors = #{ancestors},</if>
+            <if test="categoryName != null and categoryName != ''">category_name = #{categoryName},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where category_id = #{categoryId}
+    </update>
+
+    <update id="updateProductCategoryChildren">
+        <foreach collection="list" item="item" separator=";">
+            update product_category
+            <set>
+                ancestors = #{item.ancestors}
+            </set>
+            where category_id = #{item.categoryId}
+        </foreach>
+    </update>
+
+    <delete id="deleteProductCategoryByCategoryId" parameterType="Long">
+        delete from product_category where category_id = #{categoryId}
+    </delete>
+
+    <delete id="deleteProductCategoryByCategoryIds" parameterType="String">
+        delete from product_category where category_id in 
+        <foreach item="categoryId" collection="array" open="(" separator="," close=")">
+            #{categoryId}
+        </foreach>
+    </delete>
+
+    <select id="checkProductCategoryNameUnique" resultMap="ProductCategoryResult">
+        <include refid="selectProductCategoryVo"/>
+        where category_name = #{categoryName} and parent_id = #{parentId} limit 1
+    </select>
+
+    <select id="selectChildrenProductCategoryById" resultMap="ProductCategoryResult">
+        <include refid="selectProductCategoryVo"/>
+        where find_in_set(#{categoryId}, ancestors)
+    </select>
+
+    <select id="hasChildByCategoryId" resultType="int">
+        select count(1) from product_category where parent_id = #{categoryId}
+    </select>
+</mapper>
